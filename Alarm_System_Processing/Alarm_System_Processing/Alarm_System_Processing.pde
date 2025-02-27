@@ -80,13 +80,14 @@ void draw() {
     fill(0);
     text("Room 3", 230, 270);
   }
+}
 
 
 /*
   Serial Event Handler
 */
-void serialEvent(Serial event) {
-  String usbString = event.readStringUntil('\n'); // We'll change the background colour based on the data received
+void serialEvent(Serial p) {
+  String usbString = p.readStringUntil('\n'); // We'll change the background colour based on the data received
   
   if (usbString != null) {
     usbString = trim(usbString);
