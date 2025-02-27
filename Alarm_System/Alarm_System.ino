@@ -13,9 +13,11 @@
 
 // Pin Numbers
 const int LED = 13;
+const int BUZZER = 9;
 const int ON_OFF = 3;
-const int ENTRY_EXIT = 32;
-const int ZONE_ONE = 34;
+const int ENTRY_EXIT = 50;
+const int ZONE_ONE = 48;
+
 
 // Time constants
 const int FIVE_SEC = 5000;
@@ -46,8 +48,8 @@ char keys[ROWS][COLS] = { // Define the Keymap
   {'*','0','#', 'D'} // (*) is to validate password // (#) is to reset password attempt
 };
 
-byte rowPins[ROWS] = {9, 8, 7, 6}; // connect to the row pinouts of the keypad (Keypad ROW0, ROW1, ROW2, and ROW3)
-byte colPins[COLS] = {5, 4, 3, 2}; // connect to the column pinouts of the keypad (Keypad COL0, COL1, COL2, COL3)
+byte rowPins[ROWS] = {36, 34, 32, 30}; //{9, 8, 7, 6}; // connect to the row pinouts of the keypad (Keypad ROW0, ROW1, ROW2, and ROW3)
+byte colPins[COLS] = {28, 26, 24, 22}; //{5, 4, 3, 2}; // connect to the column pinouts of the keypad (Keypad COL0, COL1, COL2, COL3)
 
 // Create the Keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
@@ -61,7 +63,13 @@ void setup() {
   Serial.begin(9600);
 
   // Initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
+
+  // Set the LED as an output
+  pinMode(LED, OUTPUT);
+
+  // Set the buzzer as an output
+  pinMode(BUZZER, OUTPUT);
 
   // Set the given pins to be an input pull-up
   pinMode(ON_OFF, INPUT_PULLUP);
@@ -77,6 +85,11 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+  read_entry_exit();
+  Serial.println(EntryExitState);
+}
+
+void loops() {
   keypad.getKey();
 
   if (OnOffState == 1) {
@@ -115,9 +128,12 @@ void loop() {
   Flashing with a custom delay function
 */
 void flash() {
-  digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
+  digitalWrite(LED, HIGH); // digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
+  playBuzzer(BUZZER, 1500, 200);
   my_delay();//delay(1000);
-  digitalWrite(LED_BUILTIN, LOW); // turn the LED off by making the voltage LOW
+  
+  digitalWrite(LED, LOW); // digitalWrite(LED_BUILTIN, LOW); // turn the LED off by making the voltage LOW
+  playBuzzer(BUZZER, 500, 200);
   my_delay();//delay(1000);
 }
 
@@ -128,6 +144,20 @@ void my_delay() {
     keypad.getKey();
   }
 }
+
+/*
+  Play Sound
+*/
+void playBuzzer(int buzzer, int freq, int time) {
+  tone(buzzer, freq); // Send (freq) sound signal...
+  delay(time); // ...for (time) sec
+}
+
+
+void stopBuzzer(int buzzer) {   
+  noTone(buzzer);     // Stop sound...
+}
+
 /*
   End of flashing with a custom delay function
 */
@@ -156,6 +186,8 @@ void checkPassword() {
 /**************
 * Digital Read States
 **************/
+
+// Checks the On/Off state
 void read_on_off() {
   OnOffState = digitalRead(ON_OFF);
 }
@@ -168,6 +200,7 @@ void read_entry_exit() {
 void read_zone_1() {
   ZoneOneState = digitalRead(ZONE_ONE);
 }
+
 /**************
 * End of Digital Read States
 **************/
