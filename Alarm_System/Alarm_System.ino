@@ -14,8 +14,8 @@
 // Pin Numbers
 const int LED = 13;
 const int BUZZER = 9;
-const int ON_OFF = 3;
-const int ENTRY_EXIT = 50;
+const int ON_OFF = 52;
+const int ENTRY_EXIT = 53;
 const int ZONE_ONE = 48;
 
 
