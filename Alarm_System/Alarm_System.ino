@@ -165,7 +165,7 @@ void countdown() {
   for (int z = 10; z > 0; z--) { // Start from 10, down to 0
     Serial.println("Alarm will arm in ");
     Serial.print(z - 1); Serial.println(" seconds");
-    delay(1000); // Wait for one second before looping again
+    my_delay();//delay(1000); // Wait for one second before looping again
 
     if (alarmArmed == false) // Stop the countdown
       break;
