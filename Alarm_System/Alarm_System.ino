@@ -27,6 +27,9 @@ int EntryExitState;
 int OnOffState;
 int ZoneOneState;
 
+// Boolean to arm alarm
+bool alarmArmed = false;
+
 // Variables for my_delay()
 int x = 0;
 int period = 1000;
@@ -48,8 +51,8 @@ char keys[ROWS][COLS] = { // Define the Keymap
   {'*','0','#', 'D'} // (*) is to validate password // (#) is to reset password attempt
 };
 
-byte rowPins[ROWS] = {36, 34, 32, 30}; //{9, 8, 7, 6}; // connect to the row pinouts of the keypad (Keypad ROW0, ROW1, ROW2, and ROW3)
-byte colPins[COLS] = {28, 26, 24, 22}; //{5, 4, 3, 2}; // connect to the column pinouts of the keypad (Keypad COL0, COL1, COL2, COL3)
+byte rowPins[ROWS] = {22, 24, 26, 28};//{9, 8, 7, 6}; // connect to the row pinouts of the keypad (Keypad ROW0, ROW1, ROW2, and ROW3)
+byte colPins[COLS] = {30, 32, 34, 36}; //{5, 4, 3, 2}; // connect to the column pinouts of the keypad (Keypad COL0, COL1, COL2, COL3)
 
 // Create the Keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
@@ -85,35 +88,28 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-  read_entry_exit();
-  Serial.println(EntryExitState);
-}
-
-void loops() {
   keypad.getKey();
+  toggleAlarm(); // Check if the alarm has been enabled
 
-  if (OnOffState == 1) {
-    countdown();
-    Serial.println("ALARM ARMED ");
-  }
 
-  while(OnOffState == 1) { // The state is set to ON
+  while(alarmArmed == true) { // The state is set to ON
     read_entry_exit();
-    read_zone_1();
+    //read_zone_1();
+    ZoneOneState == 0; // temporary
 
-    if (EntryExitState == 1) { // Entry/Exit zone has been breached
+    if (EntryExitState == 0) { // Entry/Exit zone has been breached
       Serial.println("TURN off Alarm");
       countdown();
       Serial.println("Entry Exit zone breeched");
       keypad.getKey();
 
-      while(OnOffState == 1) { // The alarm is been triggered
+      while(alarmArmed == true) { // The alarm is been triggered
         keypad.getKey();
         flash();
       }
     }
 
-    while(ZoneOneState && OnOffState) { // The alarm has been triggered in Zone 1
+    while(ZoneOneState && alarmArmed) { // The alarm has been triggered in Zone 1
       keypad.getKey();
       flash();
       Serial.println("Zone 1 Breached");
@@ -123,6 +119,7 @@ void loops() {
 
   delay(1000);
 }
+
 
 /*
   Flashing with a custom delay function
@@ -144,6 +141,7 @@ void my_delay() {
     keypad.getKey();
   }
 }
+
 
 /*
   Play Sound
@@ -168,6 +166,9 @@ void countdown() {
     Serial.println("Alarm will arm in ");
     Serial.print(z - 1); Serial.println(" seconds");
     delay(1000); // Wait for one second before looping again
+
+    if (alarmArmed == false) // Stop the countdown
+      break;
   }
 }
 
@@ -176,11 +177,30 @@ void checkPassword() {
   if (password.evaluate()) {
     Serial.println("Success");
     x = !x;
+    alarmArmed = false;
   } else {
     Serial.println("Wrong!");
   }
 
   password.reset();
+}
+
+// Check if the Alarm has been turned on
+void toggleAlarm() {
+  read_on_off();
+
+  if (OnOffState == 0)
+    alarmArmed = !alarmArmed;
+
+  if (alarmArmed == true) {
+    Serial.println("ALARM ARMED");
+  } else {
+    Serial.println("ALARM DISARMED");
+
+    stopBuzzer(BUZZER); // Stop the Buzzer
+    digitalWrite(LED, LOW); // turn the LED off by making the voltage LOW
+
+  }
 }
 
 /**************
@@ -215,6 +235,7 @@ void keypadEvent(KeypadEvent keyEvent) {
     case PRESSED:
       Serial.print("Pressed: ");
       Serial.print(keyEvent);
+      Serial.println();
 
       switch(keyEvent) {
         case '*':
