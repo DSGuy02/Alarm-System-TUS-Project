@@ -15,7 +15,11 @@
 const int LED = 13;
 const int BUZZER = 9;
 const int ON_OFF = 52;
-const int ENTRY_EXIT = 53;
+
+// const int ENTRY_EXIT = 53; // no longer using buttons for Entry/Exit
+const int ENTRY_EXIT_TRIG = 7;
+const int ENTRY_EXIT_ECHO = 6;
+
 const int ZONE_ONE = 48;
 
 
@@ -29,6 +33,10 @@ int ZoneOneState;
 
 // Boolean to arm alarm
 bool alarmArmed = false;
+
+// Variables for ENTRY_EXIT_Ultrasonic
+long entry_exit_duration;
+float entry_exit_distance;
 
 // Variables for my_delay()
 int x = 0;
@@ -76,7 +84,10 @@ void setup() {
 
   // Set the given pins to be an input pull-up
   pinMode(ON_OFF, INPUT_PULLUP);
-  pinMode(ENTRY_EXIT, INPUT_PULLUP);
+  // pinMode(ENTRY_EXIT, INPUT_PULLUP); // no longer using a button for Entry/Exit
+  pinMode(ENTRY_EXIT_TRIG, OUTPUT);
+  pinMode(ENTRY_EXIT_ECHO, INPUT);
+
   pinMode(ZONE_ONE, INPUT_PULLUP);
 
   // Have the keypad listen for input
@@ -97,8 +108,8 @@ void loop() {
     //read_zone_1();
     ZoneOneState == 0; // temporary
 
-    if (EntryExitState == 0) { // Entry/Exit zone has been breached
-      Serial.println("TURN off Alarm");
+    if (EntryExitState == 1) { // Entry/Exit zone has been breached
+      Serial.println("Entry/Exit zone accessed. Initating timer....");
       countdown();
       Serial.println("Entry Exit zone breeched");
       keypad.getKey();
@@ -214,7 +225,31 @@ void read_on_off() {
 
 // Checks the Entry/Exit state
 void read_entry_exit() {
-  EntryExitState = digitalRead(ENTRY_EXIT);
+  // Clear the trigPin by setting it LOW:
+  digitalWrite(ENTRY_EXIT_TRIG, LOW);
+  delayMicroseconds(10);
+
+  // Trigger the sensor by setting the trigPin high for 10 microseconds:
+  digitalWrite(ENTRY_EXIT_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(ENTRY_EXIT_TRIG, LOW);
+
+  // Read the echoPin, pulseIn() returns the duration (length of the pulse) in microseconds:
+  entry_exit_duration = pulseIn(ENTRY_EXIT_ECHO, HIGH);
+  // Calculate the distance:
+  entry_exit_distance = entry_exit_duration * 0.034 / 2;
+
+  // Print the distance on the Serial Monitor (Ctrl+Shift+M):
+  // Serial.print("Distance = "); // Debugging
+  // Serial.print(entry_exit_distance); // Debugging
+  // Serial.println(" cm"); // Debugging
+
+  if (entry_exit_distance > 0.00 && entry_exit_distance <= 6.0) { // Someone has potentially breached the entry/exit zone
+    EntryExitState = 1;
+  } else {
+    EntryExitState = 0;
+  }
+
 }
 
 void read_zone_1() {
