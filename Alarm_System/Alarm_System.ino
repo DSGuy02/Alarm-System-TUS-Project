@@ -12,7 +12,8 @@
 
 
 // Pin Numbers
-const int LED = 13;
+const int RED_LED = 13;
+const int GREEN_LED = 23;
 const int BUZZER = 9;
 const int ON_OFF = 52;
 
@@ -76,8 +77,9 @@ void setup() {
   // Initialize digital pin LED_BUILTIN as an output.
   //pinMode(LED_BUILTIN, OUTPUT);
 
-  // Set the LED as an output
-  pinMode(LED, OUTPUT);
+  // Set the LEDs as an output
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
 
   // Set the buzzer as an output
   pinMode(BUZZER, OUTPUT);
@@ -93,8 +95,9 @@ void setup() {
   // Have the keypad listen for input
   keypad.addEventListener(keypadEvent);
 
-  // Turn off the LED
-  digitalWrite(LED, LOW);
+  // Turn off the LEDs
+  digitalWrite(RED_LED, LOW);
+  digitalWrite(GREEN_LED, LOW);
 }
 
 // the loop function runs over and over again forever
@@ -105,6 +108,7 @@ void loop() {
 
   while(alarmArmed == true) { // The state is set to ON
     read_entry_exit();
+    keypad.getKey(); // Just in case the home-owner wishes to disarm the alarm
     //read_zone_1();
     ZoneOneState == 0; // temporary
 
@@ -114,7 +118,7 @@ void loop() {
       Serial.println("Entry Exit zone breeched");
       keypad.getKey();
 
-      while(alarmArmed == true) { // The alarm is been triggered
+      while(alarmArmed == true) { // The alarm has been triggered
         keypad.getKey();
         flash();
       }
@@ -136,11 +140,13 @@ void loop() {
   Flashing with a custom delay function
 */
 void flash() {
-  digitalWrite(LED, HIGH); // digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
+  changeGreenLED(false); // Make sure the Green LED is off
+
+  changeRedLED(true); // digitalWrite(RED_LED, HIGH); // digitalWrite(LED_BUILTIN, HIGH); // turn the RED LED on (HIGH is the voltage level)
   playBuzzer(BUZZER, 1500, 200);
   my_delay();//delay(1000);
   
-  digitalWrite(LED, LOW); // digitalWrite(LED_BUILTIN, LOW); // turn the LED off by making the voltage LOW
+  changeRedLED(false); // digitalWrite(RED_LED, LOW); // digitalWrite(LED_BUILTIN, LOW); // turn the RED LED off by making the voltage LOW
   playBuzzer(BUZZER, 500, 200);
   my_delay();//delay(1000);
 }
@@ -164,7 +170,7 @@ void playBuzzer(int buzzer, int freq, int time) {
 
 
 void stopBuzzer(int buzzer) {   
-  noTone(buzzer);     // Stop sound...
+  noTone(buzzer); // Stop sound...
 }
 
 /*
@@ -196,6 +202,26 @@ void checkPassword() {
   password.reset();
 }
 
+// Turn on/off the LED depending on situation
+void changeRedLED(bool on) {
+  if (on == true) {
+    digitalWrite(RED_LED, HIGH); // turn the RED LED on by making the voltage HIGH
+  } else {
+    digitalWrite(RED_LED, LOW); // turn the RED LED off by making the voltage LOW
+
+  }
+}
+
+void changeGreenLED(bool on) {
+  if (on == true) {
+    digitalWrite(GREEN_LED, HIGH); // turn the GREEN LED on by making the voltage HIGH
+  } else {
+    digitalWrite(GREEN_LED, LOW); // turn the GREEN LED off by making the voltage LOW
+
+  }
+}
+
+
 // Check if the Alarm has been turned on
 void toggleAlarm() {
   read_on_off();
@@ -205,11 +231,11 @@ void toggleAlarm() {
 
   if (alarmArmed == true) {
     Serial.println("ALARM ARMED");
+    changeGreenLED(true); // Green LED indicates the the alarm is armed
   } else {
     Serial.println("ALARM DISARMED");
-
+    changeGreenLED(false); // Turn off the Green LED
     stopBuzzer(BUZZER); // Stop the Buzzer
-    digitalWrite(LED, LOW); // turn the LED off by making the voltage LOW
 
   }
 }
@@ -240,7 +266,6 @@ void read_entry_exit() {
   entry_exit_distance = entry_exit_duration * 0.034 / 2;
 
   // Print the distance on the Serial Monitor (Ctrl+Shift+M):
-  // Serial.print("Distance = "); // Debugging
   // Serial.print(entry_exit_distance); // Debugging
   // Serial.println(" cm"); // Debugging
 
@@ -252,7 +277,7 @@ void read_entry_exit() {
 
 }
 
-void read_zone_1() {
+void read_zone_1() { // Zone 1 is operated by a PIR (and potentially a sound detector)
   ZoneOneState = digitalRead(ZONE_ONE);
 }
 
