@@ -286,6 +286,20 @@ void read_zone_1() { // Zone 1 is operated by a PIR (and potentially a sound det
 **************/
 
 
+// Serial Print for Processing
+void sendData() {
+  Serial.println("ALARM_ENABLED");
+  Serial.println("ALARM_DISABLED");
+
+  Serial.println("ENTRY_EXIT_BREACH");
+  Serial.println("ENTRY_EXIT_SLEEP");
+
+  Serial.println("ZONE_1_BREACH");
+  Serial.println("ZONE_1_SLEEP");
+
+  Serial.println("ZONE_2_BREACH");
+  Serial.pritnln("ZONE_2_SLEEP");
+}
 
 /**************
 * Event handler
