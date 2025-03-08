@@ -22,6 +22,7 @@ const int ENTRY_EXIT_TRIG = 7;
 const int ENTRY_EXIT_ECHO = 6;
 
 const int ZONE_ONE = 48;
+const int ZONE_TWO = 50;
 
 
 // Time constants
@@ -30,7 +31,9 @@ const int FIVE_SEC = 5000;
 // Zone states
 int EntryExitState;
 int OnOffState;
+
 int ZoneOneState;
+int ZoneTwoState;
 
 // Boolean to arm alarm
 bool alarmArmed = false;
@@ -109,13 +112,13 @@ void loop() {
   while(alarmArmed == true) { // The state is set to ON
     read_entry_exit();
     keypad.getKey(); // Just in case the home-owner wishes to disarm the alarm
-    //read_zone_1();
-    ZoneOneState == 0; // temporary
+    read_zone_1();
 
     if (EntryExitState == 1) { // Entry/Exit zone has been breached
-      Serial.println("Entry/Exit zone accessed. Initating timer....");
-      countdown();
-      Serial.println("Entry Exit zone breeched");
+      Serial.println("Entry/Exit zone accessed. Initating timer...."); // TODO: Use for OLED
+      countdown(10);
+      // Serial.println("Entry Exit zone breeched"); // TODO: Use for OLED
+      Serial.println("ENTRY_EXIT_BREACH"); // For Processing
       keypad.getKey();
 
       while(alarmArmed == true) { // The alarm has been triggered
@@ -124,12 +127,17 @@ void loop() {
       }
     }
 
-    while(ZoneOneState && alarmArmed) { // The alarm has been triggered in Zone 1
+    if (ZoneOneState == 1) { // Zone 1 has been breached
+      countdown(5);
       keypad.getKey();
-      flash();
-      Serial.println("Zone 1 Breached");
-    }
 
+      while(alarmArmed == true) { // The alarm has been triggered by Zone 1
+        keypad.getKey();
+        flash();
+        // Serial.println("Zone 1 Breached"); // TODO: Use for OLED
+        Serial.println("ZONE_1_BREACH"); // For Processing
+      }
+    }
   }
 
   delay(1000);
@@ -178,8 +186,8 @@ void stopBuzzer(int buzzer) {
 */
 
 // Countdown function
-void countdown() {
-  for (int z = 10; z > 0; z--) { // Start from 10, down to 0
+void countdown(int timer) {
+  for (int z = timer; z > 0; z--) { // Start from 10, down to 0
     Serial.println("Alarm will arm in ");
     Serial.print(z - 1); Serial.println(" seconds");
     my_delay();//delay(1000); // Wait for one second before looping again
@@ -192,11 +200,11 @@ void countdown() {
 // Check Password function
 void checkPassword() {
   if (password.evaluate()) {
-    Serial.println("Success");
+    Serial.println("KEYPAD_SUCCESS"); // For Processing
     x = !x;
     alarmArmed = false;
   } else {
-    Serial.println("Wrong!");
+    Serial.println("KEYPAD_FAIL"); // For Processing
   }
 
   password.reset();
@@ -230,10 +238,12 @@ void toggleAlarm() {
     alarmArmed = !alarmArmed;
 
   if (alarmArmed == true) {
-    Serial.println("ALARM ARMED");
+    // Serial.println("ALARM ARMED"); // TODO: Use for OLED
+    Serial.println("ALARM_ENABLED"); // For Processing
     changeGreenLED(true); // Green LED indicates the the alarm is armed
   } else {
-    Serial.println("ALARM DISARMED");
+    // Serial.println("ALARM DISARMED"); // TODO: Use for OLED
+    Serial.println("ALARM_DISABLED"); // For Processing
     changeGreenLED(false); // Turn off the Green LED
     stopBuzzer(BUZZER); // Stop the Buzzer
 
@@ -277,10 +287,13 @@ void read_entry_exit() {
 
 }
 
-void read_zone_1() { // Zone 1 is operated by a PIR (and potentially a sound detector)
+void read_zone_1() { // Zone 1 is operated by a PIR and a sound detector
   ZoneOneState = digitalRead(ZONE_ONE);
 }
 
+void read_zone_2() { // Zone 2 
+
+}
 /**************
 * End of Digital Read States
 **************/
@@ -298,7 +311,10 @@ void sendData() {
   Serial.println("ZONE_1_SLEEP");
 
   Serial.println("ZONE_2_BREACH");
-  Serial.pritnln("ZONE_2_SLEEP");
+  Serial.println("ZONE_2_SLEEP");
+
+  Serial.println("ZONE_3_BREACH");
+  Serial.println("ZONE_3_SLEEP");
 }
 
 /**************
