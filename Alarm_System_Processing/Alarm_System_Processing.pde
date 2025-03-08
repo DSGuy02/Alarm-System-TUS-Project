@@ -11,75 +11,95 @@ float val;
 int room1 = 1, room2 = 1, room3 = 1;
 int zones[];
 
+Zone zone1;
+
+class Zone {
+  private int x, y, w, h;
+  private int r, g, b, a;
+  
+  private String name, displayName;
+  
+  public Zone(String name, int x, int y, int w, int h) {
+    this.name = name;
+    this.displayName = name;
+    
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  
+  public void render() {
+    rectMode(CENTER);
+    fill(r, g, b, a);
+    stroke(10);
+    rect(x, y, w, h);
+    fill(0);
+    textAlign(CENTER);
+    text(displayName, x, y);
+  }
+  
+  
+  /*
+    Adjusting the Name
+  */
+  public void changeName(String name) {
+    this.name = name;
+  }
+  
+  public void changeDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+  
+  /*
+    Adjusting the Colours
+  */
+  public void changeRed(int r) {
+    this.r = r;
+  }
+  
+  public void changeGreen(int g) {
+    this.g = g;
+  }
+  
+  public void changeBlue(int b) {
+    this.b = b;
+  }
+  
+  public void changeAlpha(int a) {
+    this.a = a;
+  }
+  
+  public void setColour(int r, int g, int b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+  
+  public void setColour(int r, int g, int b, int a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+  
+}
+
 // Setup the project
 void setup() {
   size(500, 500); // Size of the serial window
   
-  port = new Serial(this, "", 9600); // Set the PORT and baud rate according to the Arduino IDE
-  port.clear();
-  port.bufferUntil('\n'); // Recieving the data from the Arduino IDE
+  zone1 = new Zone("Entry", 100, 100, 100, 100);
+  //port = new Serial(this, "", 9600); // Set the PORT and baud rate according to the Arduino IDE
+  //port.clear();
+  //port.bufferUntil('\n'); // Recieving the data from the Arduino IDE
 }
 
 // Continuously render and loop
 void draw() {
   background(255, 255, 255, 1);
   
-  // Room 1
-  if (room1 == 1) {
-    // Initial background colour, when we will open the serial window
-    
-    rectMode(CENTER);
-    fill(0, 255, 0);
-    rect(130, 120, 100, 150);
-    textAlign(CENTER);
-    fill(0);
-    text("Room 1", 130, 120);
-  
-  } else {
-    fill(255, 0, 0);
-    rectMode(CENTER);
-    rect(130, 120, 100, 150);
-    textAlign(CENTER);
-    fill(0);
-    text("Room 1", 130, 120);
-  }
-  
-  // Room 2
-  if (room2 == 1) {
-    fill(100, 255, 100);
-    rectMode(CENTER);
-    rect(230, 120, 100, 150);
-    
-    textAlign(CENTER);
-    fill(0);
-    text("Room 2", 230, 120);
-  } else {
-    rectMode(CENTER);
-    fill(255, 0, 0);
-    rect(230, 120, 100, 150);
-    
-    textAlign(CENTER);
-    fill(0);
-    text("Room 2", 230, 120);
-  }
-  
-  // Room 3
-  if (room3 == 1) {
-    fill(0, 255, 0);
-    rectMode(CENTER);
-    rect(230, 270, 100, 150);
-    textAlign(CENTER);
-    fill(0);
-    text("Room 3", 230, 270);
-  } else {
-    fill(255, 0, 0);
-    rectMode(CENTER);
-    rect(230, 270, 100, 150);
-    
-    textAlign(CENTER);
-    fill(0);
-    text("Room 3", 230, 270);
-  }
+  zone1.render();
 }
 
 
