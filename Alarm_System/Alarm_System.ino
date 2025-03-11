@@ -15,15 +15,17 @@
 const int RED_LED = 13;
 const int GREEN_LED = 23;
 const int BUZZER = 9;
-const int ON_OFF = 52;
+const int ON_OFF_BUTTON = 52;
 
 // const int ENTRY_EXIT = 53; // no longer using buttons for Entry/Exit
-const int ENTRY_EXIT_TRIG = 7;
-const int ENTRY_EXIT_ECHO = 6;
+const int ENTRY_EXIT_ULTRASONIC_TRIG = 7;
+const int ENTRY_EXIT_ULTRASONIC_ECHO = 6;
 
-const int ZONE_ONE = 48;
-const int ZONE_TWO = 50;
+const int ZONE_ONE_PIR = 48;
+#define ZONE_ONE_SOUND A2
 
+const int ZONE_TWO_PIR = 46;
+#define ZONE_TWO_TEMP A0
 
 // Time constants
 const int FIVE_SEC = 5000;
@@ -88,12 +90,18 @@ void setup() {
   pinMode(BUZZER, OUTPUT);
 
   // Set the given pins to be an input pull-up
-  pinMode(ON_OFF, INPUT_PULLUP);
+  pinMode(ON_OFF_BUTTON, INPUT_PULLUP);
   // pinMode(ENTRY_EXIT, INPUT_PULLUP); // no longer using a button for Entry/Exit
-  pinMode(ENTRY_EXIT_TRIG, OUTPUT);
-  pinMode(ENTRY_EXIT_ECHO, INPUT);
+  pinMode(ENTRY_EXIT_ULTRASONIC_TRIG, OUTPUT);
+  pinMode(ENTRY_EXIT_ULTRASONIC_ECHO, INPUT);
 
-  pinMode(ZONE_ONE, INPUT_PULLUP);
+  // Setup for Zone 1
+  pinMode(ZONE_ONE_PIR, INPUT);
+  pinMode(ZONE_ONE_SOUND, INPUT);
+
+  // Setup for Zone 2
+  pinMode(ZONE_TWO_PIR, INPUT);
+  pinMode(ZONE_TWO_TEMP, INPUT);
 
   // Have the keypad listen for input
   keypad.addEventListener(keypadEvent);
@@ -110,9 +118,12 @@ void loop() {
 
 
   while(alarmArmed == true) { // The state is set to ON
-    read_entry_exit();
     keypad.getKey(); // Just in case the home-owner wishes to disarm the alarm
+    
+    // Check the zones
+    read_entry_exit();
     read_zone_1();
+    read_zone_2();
 
     if (EntryExitState == 1) { // Entry/Exit zone has been breached
       Serial.println("Entry/Exit zone accessed. Initating timer...."); // TODO: Use for OLED
@@ -127,6 +138,8 @@ void loop() {
       }
     }
 
+
+
     if (ZoneOneState == 1) { // Zone 1 has been breached
       countdown(5);
       keypad.getKey();
@@ -136,6 +149,18 @@ void loop() {
         flash();
         // Serial.println("Zone 1 Breached"); // TODO: Use for OLED
         Serial.println("ZONE_1_BREACH"); // For Processing
+      }
+    }
+
+    if (ZoneTwoState == 1) { // Zone 2 has been breached
+      countdown(5);
+      keypad.getKey();
+
+      while(alarmArmed == true) { // The alarm has been triggered by Zone 2
+        keypad.getKey();
+        flash();
+        // Serial.println("Zone 1 Breached"); // TODO: Use for OLED
+        Serial.println("ZONE_2_BREACH");
       }
     }
   }
@@ -256,22 +281,22 @@ void toggleAlarm() {
 
 // Checks the On/Off state
 void read_on_off() {
-  OnOffState = digitalRead(ON_OFF);
+  OnOffState = digitalRead(ON_OFF_BUTTON);
 }
 
 // Checks the Entry/Exit state
 void read_entry_exit() {
   // Clear the trigPin by setting it LOW:
-  digitalWrite(ENTRY_EXIT_TRIG, LOW);
+  digitalWrite(ENTRY_EXIT_ULTRASONIC_TRIG, LOW);
   delayMicroseconds(10);
 
   // Trigger the sensor by setting the trigPin high for 10 microseconds:
-  digitalWrite(ENTRY_EXIT_TRIG, HIGH);
+  digitalWrite(ENTRY_EXIT_ULTRASONIC_TRIG, HIGH);
   delayMicroseconds(10);
-  digitalWrite(ENTRY_EXIT_TRIG, LOW);
+  digitalWrite(ENTRY_EXIT_ULTRASONIC_TRIG, LOW);
 
   // Read the echoPin, pulseIn() returns the duration (length of the pulse) in microseconds:
-  entry_exit_duration = pulseIn(ENTRY_EXIT_ECHO, HIGH);
+  entry_exit_duration = pulseIn(ENTRY_EXIT_ULTRASONIC_ECHO, HIGH);
   // Calculate the distance:
   entry_exit_distance = entry_exit_duration * 0.034 / 2;
 
@@ -288,11 +313,36 @@ void read_entry_exit() {
 }
 
 void read_zone_1() { // Zone 1 is operated by a PIR and a sound detector
-  ZoneOneState = digitalRead(ZONE_ONE);
+  int pirState = digitalRead(ZONE_ONE_PIR);
+  int soundValue = analogRead(ZONE_ONE_SOUND);
+
+  //Serial.print("Sound Value: ");
+  //Serial.println(soundValue);
+
+  if (pirState == 1) {
+    Serial.println("ZONE_1_PIR_DETECT");
+    ZoneOneState = 1;
+  } else if (soundValue >= 70) {
+    Serial.println("ZONE_1_SOUND_DETECT");
+  } else {
+    ZoneOneState = 0;
+  }
 }
 
 void read_zone_2() { // Zone 2 
+  int pirTwoState = digitalRead(ZONE_TWO_PIR);
+  int tempValue = analogRead(ZONE_TWO_TEMP);
 
+  //Serial.print("Temp. Value: ");
+  //Serial.println(tempValue);
+
+  if (pirTwoState == 1) {
+    //Serial.println("ZONE_2_PIR_DETECT");
+    //ZoneTwoState = 1;
+  } else if (tempValue >= 1030) {
+    Serial.println("ZONE_2_TEMP_DETECT");
+    ZoneTwoState = 1;
+  }
 }
 /**************
 * End of Digital Read States
