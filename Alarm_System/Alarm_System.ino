@@ -45,7 +45,6 @@ long entry_exit_duration;
 float entry_exit_distance;
 
 // Variables for my_delay()
-int x = 0;
 int period = 1000;
 unsigned long time_now = 0;
 
@@ -226,7 +225,6 @@ void countdown(int timer) {
 void checkPassword() {
   if (password.evaluate()) {
     Serial.println("KEYPAD_SUCCESS"); // For Processing
-    x = !x;
     alarmArmed = false;
   } else {
     Serial.println("KEYPAD_FAIL"); // For Processing
@@ -362,9 +360,6 @@ void sendData() {
 
   Serial.println("ZONE_2_BREACH");
   Serial.println("ZONE_2_SLEEP");
-
-  Serial.println("ZONE_3_BREACH");
-  Serial.println("ZONE_3_SLEEP");
 }
 
 /**************
