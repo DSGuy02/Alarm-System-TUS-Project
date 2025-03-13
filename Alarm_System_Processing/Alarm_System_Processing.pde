@@ -4,14 +4,21 @@ import processing.serial.*; // Importing the serial library to communicate with 
 
 Serial port; // Initializing a vairable named 'port' for serial communication
 
-String usbString; // Variable for changing the background colour
+String serialString; // Variable for changing the background colour
 
-float val;
+// Check if the alarm has been enabled
+boolean alarmEnabled = false;
 
-int room1 = 1, room2 = 1, room3 = 1;
-int zones[];
+// Check if the zones have been breached
+boolean entryExitBreach = false;
+boolean zoneOneBreach = false;
+boolean zoneTwoBreach = false;
 
-Zone zone1;
+
+// The three zones
+Zone entryExit;
+Zone zoneOne;
+Zone zoneTwo;
 
 class Zone {
   private int x, y, w, h;
@@ -27,11 +34,16 @@ class Zone {
     this.y = y;
     this.w = w;
     this.h = h;
+    
+    this.r = 200;
+    this.g = 200;
+    this.b = 200;
+    this.a = 255;
   }
   
   public void render() {
     rectMode(CENTER);
-    fill(r, g, b, a);
+    fill(color(r, g, b, a));
     stroke(10);
     rect(x, y, w, h);
     fill(0);
@@ -70,6 +82,34 @@ class Zone {
     this.a = a;
   }
   
+  /*
+    Set to a colour
+  */
+  public void setRed() {
+    this.r = 200;
+    this.g = 0;
+    this.b = 0;
+  }
+  
+  public void setGreen() {
+    this.r = 0;
+    this.g = 200;
+    this.b = 0;
+  }
+  
+  public void setBlue() {
+    this.r = 0;
+    this.g = 0;
+    this.b = 200;
+  }
+  
+  public void defaultColour() {
+    this.r = 200;
+    this.g = 200;
+    this.b = 200;
+    this.a = 255;
+  }
+  
   public void setColour(int r, int g, int b) {
     this.r = r;
     this.g = g;
@@ -82,14 +122,18 @@ class Zone {
     this.b = b;
     this.a = a;
   }
-  
+   
 }
 
 // Setup the project
 void setup() {
   size(500, 500); // Size of the serial window
   
-  zone1 = new Zone("Entry", 100, 100, 100, 100);
+  // Instance our zones
+  entryExit = new Zone("Entry", 100, 100, 200, 200);
+  zoneOne = new Zone("Room 1", 300, 100, 200, 200);
+  zoneTwo = new Zone("Room 2", 100, 300, 200, 200);
+  
   //port = new Serial(this, "", 9600); // Set the PORT and baud rate according to the Arduino IDE
   //port.clear();
   //port.bufferUntil('\n'); // Recieving the data from the Arduino IDE
@@ -97,9 +141,36 @@ void setup() {
 
 // Continuously render and loop
 void draw() {
-  background(255, 255, 255, 1);
+  background(255, 255, 255, 255);
   
-  zone1.render();
+  if (alarmEnabled) {
+    if (entryExitBreach) {
+      entryExit.setRed();
+      zoneOne.setColour(155, 0, 0);
+      zoneTwo.setColour(155, 0, 0);
+    } else if (zoneOneBreach) {
+       entryExit.setColour(155, 0, 0);
+       zoneOne.setRed();
+       zoneTwo.setColour(155, 0, 0);
+    } else if (zoneTwoBreach) {
+        entryExit.setColour(155, 0, 0);
+        zoneOne.setColour(155, 0, 0);
+        zoneTwo.setRed();
+    } else {
+      entryExit.setColour(155, 200, 200);
+      zoneOne.setColour(155, 200, 200);
+      zoneTwo.setColour(155, 200, 200);
+    }
+  } else {
+    entryExit.defaultColour();
+    zoneOne.defaultColour();
+    zoneTwo.defaultColour();
+  }
+  
+  entryExit.render();
+  zoneOne.render();
+  zoneTwo.render();
+  
 }
 
 
@@ -107,17 +178,45 @@ void draw() {
   Serial Event Handler
 */
 void serialEvent(Serial p) {
-  String usbString = p.readStringUntil('\n'); // We'll change the background colour based on the data received
+  serialString = p.readStringUntil('\n'); // We'll change the background colour based on the data received
   
-  if (usbString != null) {
-    usbString = trim(usbString);
-    
-    int zones[] = int(split(usbString, ','));
-    
-    if (zones.length == 5) {
-      room1 = char(zones[1]);
-      room2 = char(zones[2]);
-      room3 = char(zones[3]);
+  // Read the data coming from the Serial port
+  while (p.available() > 0) {
+    if (serialString != null) {
+      serialString = trim(serialString);
+      
+      switch(serialString) {
+        case "ALARM_ENABLED":
+          alarmEnabled = true;
+          break;
+        case "ALARM_DISABLED":
+          alarmEnabled = false;
+          break;
+        case "ENTRY_EXIT_BREACH":
+          entryExitBreach = true;
+          break;
+        case "ENTRY_EXIT_SLEEP":
+          entryExitBreach = false;
+          break;
+        case "ZONE_1_BREACH":
+          zoneOneBreach = true;
+          break;
+        case "ZONE_1_SLEEP":
+          zoneOneBreach = false;
+          break;
+        case "ZONE_2_BREACH":
+          zoneTwoBreach = true;
+          break;
+        case "ZONE_2_SLEEP":
+          zoneTwoBreach = false;
+          break;
+        case "KEYPAD_SUCCESS":
+          break;
+        case "KEYPAD_FAIL":
+          break;
+        default:
+          break;
+      }
     }
   }
 }
