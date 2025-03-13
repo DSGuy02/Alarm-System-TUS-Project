@@ -4,7 +4,7 @@ import processing.serial.*; // Importing the serial library to communicate with 
 
 Serial port; // Initializing a vairable named 'port' for serial communication
 
-String serialString; // Variable for changing the background colour
+String serialString; // Variable for getting data from the serial communication
 
 // Check if the alarm has been enabled
 boolean alarmEnabled = false;
@@ -26,6 +26,7 @@ class Zone {
   
   private String name, displayName;
   
+  // Constructor
   public Zone(String name, int x, int y, int w, int h) {
     this.name = name;
     this.displayName = name;
@@ -41,6 +42,7 @@ class Zone {
     this.a = 255;
   }
   
+  // To draw the zone
   public void render() {
     rectMode(CENTER);
     fill(color(r, g, b, a));
@@ -103,6 +105,7 @@ class Zone {
     this.b = 200;
   }
   
+  // The default colour
   public void defaultColour() {
     this.r = 200;
     this.g = 200;
@@ -143,30 +146,31 @@ void setup() {
 void draw() {
   background(255, 255, 255, 255);
   
-  if (alarmEnabled) {
-    if (entryExitBreach) {
+  if (alarmEnabled) { // The Alarm has been enabled
+    if (entryExitBreach) { // Indicate that the Entry/Exit zone has been breached
       entryExit.setRed();
       zoneOne.setColour(155, 0, 0);
       zoneTwo.setColour(155, 0, 0);
-    } else if (zoneOneBreach) {
+    } else if (zoneOneBreach) { // Indicate that Zone 1 has been breached
        entryExit.setColour(155, 0, 0);
        zoneOne.setRed();
        zoneTwo.setColour(155, 0, 0);
-    } else if (zoneTwoBreach) {
+    } else if (zoneTwoBreach) { // Indicate that Zone 2 has been breached
         entryExit.setColour(155, 0, 0);
         zoneOne.setColour(155, 0, 0);
         zoneTwo.setRed();
-    } else {
+    } else { // No Zones have been breached but indicate that the alarm has been enabled
       entryExit.setColour(155, 200, 200);
       zoneOne.setColour(155, 200, 200);
       zoneTwo.setColour(155, 200, 200);
     }
-  } else {
+  } else { // The alarm is disabled
     entryExit.defaultColour();
     zoneOne.defaultColour();
     zoneTwo.defaultColour();
   }
   
+  // Draw the zones
   entryExit.render();
   zoneOne.render();
   zoneTwo.render();
