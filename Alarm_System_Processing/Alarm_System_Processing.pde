@@ -137,9 +137,9 @@ void setup() {
   zoneOne = new Zone("Room 1", 300, 100, 200, 200);
   zoneTwo = new Zone("Room 2", 100, 300, 200, 200);
   
-  //port = new Serial(this, "", 9600); // Set the PORT and baud rate according to the Arduino IDE
-  //port.clear();
-  //port.bufferUntil('\n'); // Recieving the data from the Arduino IDE
+  port = new Serial(this, "/dev/ttyACM0", 9600); // Set the PORT and baud rate according to the Arduino IDE
+  port.clear();
+  port.bufferUntil('\n'); // Recieving the data from the Arduino IDE
 }
 
 // Continuously render and loop
@@ -174,27 +174,32 @@ void draw() {
   entryExit.render();
   zoneOne.render();
   zoneTwo.render();
-  
+ 
+  serialStringData();
+  text("Serial Data: " + serialString, 390, 490);
 }
 
 
 /*
   Serial Event Handler
 */
-void serialEvent(Serial p) {
-  serialString = p.readStringUntil('\n'); // We'll change the background colour based on the data received
-  
+void serialStringData() {
   // Read the data coming from the Serial port
-  while (p.available() > 0) {
+  while (port.available() > 0) {
     if (serialString != null) {
       serialString = trim(serialString);
-      
+      //if (serialString.equals("ALARM_ENABLED")) {
+        //alarmEnabled = true;
+      //}
       switch(serialString) {
         case "ALARM_ENABLED":
           alarmEnabled = true;
           break;
         case "ALARM_DISABLED":
           alarmEnabled = false;
+          entryExitBreach = false;
+          zoneOneBreach = false;
+          zoneTwoBreach = false;
           break;
         case "ENTRY_EXIT_BREACH":
           entryExitBreach = true;
@@ -223,4 +228,9 @@ void serialEvent(Serial p) {
       }
     }
   }
+}
+
+void serialEvent(Serial p) {
+  serialString = p.readStringUntil('\n'); // We'll change the background colour based on the data received
+  
 }
