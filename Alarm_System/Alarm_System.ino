@@ -10,6 +10,14 @@
 #include <Password.h>
 #include <Keypad.h>
 
+// For the OLED
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// Define the Screen Width, Height - in pixels
+#define OLED_SCREEN_WIDTH 128
+#define OLED_SCREEN_HEIGHT 64
 
 // Pin Numbers
 const int RED_LED = 13;
@@ -50,6 +58,9 @@ unsigned long time_now = 0;
 
 // Defining the Password function
 Password password = Password("1234");
+
+// Defining the OLED function (SSD1306 connected to I2C)
+Adafruit_SSD1306 oled(OLED_SCREEN_WIDTH, OLED_SCREEN_HEIGHT, &Wire, -1);
 
 /**************
 * Defining the Keypad Function
@@ -108,6 +119,8 @@ void setup() {
   // Turn off the LEDs
   digitalWrite(RED_LED, LOW);
   digitalWrite(GREEN_LED, LOW);
+
+  initOLED();
 }
 
 // the loop function runs over and over again forever
@@ -118,7 +131,8 @@ void loop() {
 
   while(alarmArmed == true) { // The state is set to ON
     keypad.getKey(); // Just in case the home-owner wishes to disarm the alarm
-    
+    Serial.println("ALARM_ENABLED"); // For Processing
+
     // Check the zones
     read_entry_exit();
     read_zone_1();
@@ -128,12 +142,12 @@ void loop() {
       Serial.println("Entry/Exit zone accessed. Initating timer...."); // TODO: Use for OLED
       countdown(10);
       // Serial.println("Entry Exit zone breeched"); // TODO: Use for OLED
-      Serial.println("ENTRY_EXIT_BREACH"); // For Processing
       keypad.getKey();
 
       while(alarmArmed == true) { // The alarm has been triggered
         keypad.getKey();
         flash();
+        Serial.println("ENTRY_EXIT_BREACH"); // For Processing
       }
     }
 
@@ -252,6 +266,25 @@ void changeGreenLED(bool on) {
   }
 }
 
+/*
+  OLED Functions
+*/
+void initOLED() {
+  // initialise OLED display with address 0x3C for 128x64
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    while (true);
+  }
+
+  delay(2000); // wait for init
+  oled.clearDisplay(); // clear display
+
+  oled.setTextSize(1);
+  oled.setTextColor(WHITE);
+  oled.setCursor(0, 10);
+  oled.println("Hello World!");
+  oled.display();
+}
 
 // Check if the Alarm has been turned on
 void toggleAlarm() {
@@ -262,7 +295,7 @@ void toggleAlarm() {
 
   if (alarmArmed == true) {
     // Serial.println("ALARM ARMED"); // TODO: Use for OLED
-    Serial.println("ALARM_ENABLED"); // For Processing
+    // Serial.println("ALARM_ENABLED"); // For Processing
     changeGreenLED(true); // Green LED indicates the the alarm is armed
   } else {
     // Serial.println("ALARM DISARMED"); // TODO: Use for OLED
