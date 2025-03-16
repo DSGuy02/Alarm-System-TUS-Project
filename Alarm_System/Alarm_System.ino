@@ -368,6 +368,7 @@ void read_entry_exit() {
   // Serial.println(" cm"); // Debugging
 
   if (entry_exit_distance > 0.00 && entry_exit_distance <= 6.0) { // Someone has potentially breached the entry/exit zone
+    Serial.println("ENTRY_EXIT_ULTRASONIC_DETECT");
     EntryExitState = 1;
   } else {
     EntryExitState = 0;
