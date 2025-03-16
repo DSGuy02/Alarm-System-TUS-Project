@@ -1,8 +1,10 @@
 /*
-* Oladeji Sanyaolu (2025-2-06)
 *
-* Integration of the keypad to
-* the Basic Alarm system
+* Code written by Oladeji Sanyaolu (2025-2-06)
+*
+* Arduino Home Alarm System
+*
+* Project for BEng Computer Engineer 2nd Year (TUS Athlone)
 *
 */
 
