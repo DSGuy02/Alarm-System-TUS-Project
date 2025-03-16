@@ -419,7 +419,7 @@ void read_zone_2() { // Zone 2
 void keypadEvent(KeypadEvent keyEvent) {
   switch(keypad.getState()) {
     case PRESSED:
-      Serial.print("Pressed: ");
+      Serial.print("Keypad: ");
       Serial.print(keyEvent);
       Serial.println();
       displayOLEDTextPositon("Key: " + String(keyEvent), 10, 20);
