@@ -1,4 +1,9 @@
-// Code written by Oladeji Sanyaolu (Alarm System TUS) 2025-2-27
+/*
+ * Code written by Oladeji Sanyaolu 2025-2-27
+ *
+ * Processing Integration for Alarm System TUS
+ *
+*/
 
 import processing.serial.*; // Importing the serial library to communicate with the Arduino 
 
