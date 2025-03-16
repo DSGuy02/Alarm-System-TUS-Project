@@ -406,6 +406,8 @@ void read_zone_2() { // Zone 2
   } else if (tempValue >= 1030) {
     Serial.println("ZONE_2_TEMP_DETECT");
     ZoneTwoState = 1;
+  } else {
+    ZoneTwoState = 0;
   }
 }
 /**************
